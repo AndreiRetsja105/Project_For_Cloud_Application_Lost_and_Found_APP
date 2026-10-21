@@ -20,20 +20,21 @@ def database_conection() -> Iterator[sqlite3.Connection]:
 
     database_path = get_database_path()
     database_path.parent.mkdir(parents=True, exist_ok=True)
-    connection= sqlite3.connect(database_path, timeout=10)
-    connection.row_factory = sqlite3.Row #  return rows accesable by the column Name
+    conn= sqlite3.connect(database_path, timeout=10)
+    conn.row_factory = sqlite3.Row #  return rows accesable by the column Name
     try:
-        with connection:   # commit on acces (roll back on failure)
+        with conn:   # commit on acces (roll back on failure)
         
-            yield connection
+            yield conn
     
     finally:
-        connection.close() # release the data base file after each opreation 
+        conn.close() # release the data base file after each opreation 
+
 
 def initialse_database() -> None:
     """create < Item table > if not exist """ 
-    with database_conection() as connection:
-        connection.execute(
+    with database_conection() as conn:
+        conn.execute(
             """
             CREATE TABLE IF NOT EXISTS items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,25 +46,32 @@ def initialse_database() -> None:
             )
             """
         )
+    
+        # Read the actual column names from the SQLite table.
+        rows = conn.execute("PRAGMA table_info(items)").fetchall()
+
+        # PRAGMA returns the column name at index 1.
+        columns = {row[1] for row in rows}
+        if "status" not in columns: conn.execute("ALTER TABLE items ADD COLUMN status TEXT NOT NULL DEFAULT 'open'")
 
 
 def list_items(category:str| None = None ) -> list[dict]:
      """ read all reports < filter by lost or found category >"""
-     with database_conection() as connection:
+     with database_conection() as conn:
         
         if category is None:
-            rows = connection.execute("SELECT * FROM items ORDER BY id").fetchall()
+            rows = conn.execute("SELECT * FROM items ORDER BY id").fetchall()
 
         else:
             # using a bound parameter prevents user-supplied strings from being interpreted as SQL code.
-            rows = connection.execute("SELECT * FROM items WHERE category = ? ORDER BY id", (category,)).fetchall()
+            rows = conn.execute("SELECT * FROM items WHERE category = ? ORDER BY id", (category,)).fetchall()
         return [dict(row) for row in rows]
 
      
 def find_item(item_id: int) -> dict| None:
     """return the report by ID, or None if no matching row is found"""
-    with database_conection() as connection:
-        row = connection.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
+    with database_conection() as conn:
+        row = conn.execute("SELECT * FROM items WHERE id = ?", (item_id,)).fetchone()
         
         return dict(row) if row is not None else None
 
@@ -71,18 +79,22 @@ def find_item(item_id: int) -> dict| None:
 def insert_item(data: dict) -> dict:
     """insert the verified report and return the new saved row """
     
-    with database_conection() as connection:
-        cursor = connection.execute("INSERT INTO items (title, description, category, location) VALUES (?, ?, ?, ?)",(data["title"], data["description"], data["category"], data["location"], data["status"]),)
+    with database_conection() as conn:
+        # Save all five fields provided by the user.
+        cursor = conn.execute(""" INSERT INTO items (title, description, category, location, status) VALUES (?, ?, ?, ?, ?)""", (data["title"], data["description"], data["category"], data["location"], data["status"]))
+
+        # Get the unique ID created by SQLite.
         item_id = cursor.lastrowid
 
+    # Retrieve and return the new report.
     return find_item(item_id)
 
 
 def replace_item(item_id: int, data: dict) -> dict | None:
     """replace the fields of the saved report; return None if its identifier is missing"""
     
-    with database_conection() as connection:
-        cursor = connection.execute(""" UPDATE items SET title = ?, description = ?, category = ?, location = ?, status = ? WHERE id = ? """,(data["title"], data["description"], data["category"], data["location"], data["status"], item_id),)
+    with database_conection() as conn:
+        cursor = conn.execute(""" UPDATE items SET title = ?, description = ?, category = ?, location = ?, status = ? WHERE id = ? """,(data["title"], data["description"], data["category"], data["location"], data["status"], item_id),)
     
     if cursor.rowcount == 0 :
         return None
@@ -93,8 +105,8 @@ def replace_item(item_id: int, data: dict) -> dict | None:
 def delete_item(item_id: int ) -> bool:
     """delete the saved report and indicate whether anything was deleted"""
     
-    with database_conection() as connection:
-        cursor = connection.execute("DELETE FROM items WHERE id = ?", (item_id,))
+    with database_conection() as conn:
+        cursor = conn.execute("DELETE FROM items WHERE id = ?", (item_id,))
         
         return cursor.rowcount > 0
 

@@ -1,1 +1,98 @@
-body { background: #f8fafc; color: #17243c; }
+body { background: #f8fafc; color: #18263e; font-family: 'Atkinson Hyperlegible', sens-serif; }
+h1,h2,h3 {font-family: 'Bricolage Grotesque', sans-serif; }
+.site-header { background: linear-gradient(110deg, #18375e, #286c82); color: white; }
+.site-kicker { letter-spacing: .12em; opacity: .8; }
+.card { border-radius: 16px; }
+.sticky-form { position: sticky; top: 1rem; }
+.report-card { border-left: 4px solid #c9d9e7 !important; }
+.category-pill { display: inline-block; font-size: .75rem; font-weight: 700; padding: .2rem .65rem; border-radius: 2rem; text-transform: capitalize; }
+.category-pill.lost { background: #fff0dc; color: #8b5107; }
+.category-pill.found { background: #dff5ea; color: #16754c; }
+.empty-state { border: 2px dashed #cad5e3; border-radius: 16px; background: white; }
+
+
+/* NCI-inspired colours used throughout the application. */
+:root {
+  --nci-navy: #092b50;
+  --nci-blue: #006dad;
+  --nci-light-blue: #dceef8;
+}
+
+/* Display the campus photo as the main header background. */
+.nci-hero {
+  position: relative;
+  min-height: 340px;
+  background-image: url("/nci-campus.png");
+  background-position: center 48%;
+  background-size: cover;
+  color: white;
+}
+
+/* Darken the photo to keep the text readable. */
+.nci-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(9, 43, 80, 0.94),
+    rgba(9, 43, 80, 0.70),
+    rgba(9, 43, 80, 0.25)
+  );
+}
+
+/* Keep the logo and heading above the background overlay. */
+.nci-hero-content {
+  position: relative;
+  z-index: 1;
+  padding-top: 35px;
+  padding-bottom: 55px;
+}
+
+/* Display the NCI logo clearly against the background photo. */
+.nci-logo {
+  width: 155px;
+  height: auto;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.nci-hero h1 {
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
+  font-weight: 750;
+  margin-bottom: 12px;
+}
+
+.site-kicker {
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  color: #dceef8;
+}
+
+.hero-subtitle {
+  max-width: 550px;
+  font-size: 1.1rem;
+  color: #e5f2fa;
+}
+
+/* Apply NCI blue to the primary actions. */
+.btn-primary {
+  background-color: var(--nci-blue);
+  border-color: var(--nci-blue);
+}
+
+.btn-primary:hover {
+  background-color: var(--nci-navy);
+  border-color: var(--nci-navy);
+}
+
+/* Adjust the hero layout for smaller devices. */
+@media (max-width: 768px) {
+  .nci-hero {
+    min-height: 300px;
+  }
+
+  .nci-logo {
+    width: 115px;
+  }
+}

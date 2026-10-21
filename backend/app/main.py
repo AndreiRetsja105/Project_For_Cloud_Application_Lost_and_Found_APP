@@ -1,11 +1,10 @@
-# Import Fast API <Creating backend API>
-# Libratyes for version v0.1
-#update <from fastapi import FastAPI to from fastapi import FastAPI, HTTPException, status>
+# import Fast API <Creating backend API>
+# libratyes for version v0.1
+# update <from fastapi import FastAPI to from fastapi import FastAPI, HTTPException, status>
 from fastapi import FastAPI, HTTPException, Response, status
-from fastapi import FastAPI
 
 from fastapi.middleware.cors import CORSMiddleware
-# Updates libraries for version v0.2
+# updates libraries for version v0.2
 from pydantic import BaseModel, Field
 from typing import Literal
 # update Librays for v0.3
@@ -17,18 +16,18 @@ from . import database
 async def lifespan(app: FastAPI):
     """Create an SQLite table when the FastAPI server starts"""
     database.initialse_database()
-    yield ## FastAPI processes requests until the application stop run 
+    yield ## fastAPI processes requests until the application stop run 
 
     
-# Create Application and set its name and current version 
+# create application and set its name and current version 
 app = FastAPI(title="NCI_Lost_And_Found_API", version="0.3.0", lifespan=lifespan)
 
 
 # Allow the local Frontend and Backend comunnicate together
 # GET request to the API <other requests are under development>
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_credentials=False, allow_methods=["GET", "POST", "PUT", "DELETE"], allow_headers=["*"],)
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_credentials=False, allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], allow_headers=["*"],)
 
-# Class ItemCreate for version v0.3
+# class ItemCreate for version v0.3
 class ItemCreate(BaseModel):
     """
     Validate the information submitted by a student
@@ -48,7 +47,7 @@ class ItemCreate(BaseModel):
     location: str = Field(min_length=2, max_length=120)
 
     # current status of the reported item.
-    status: str
+    status: str = Field(min_length=2, max_length=40)
 
 
 class Item(ItemCreate):
@@ -84,7 +83,7 @@ def get_items(category: Literal ["lost", "found" ]| None= None):
     return database.list_items(category)
 
 
-@app.get("/items/(item_id)", response_model= Item, tags=["items"])
+@app.get("/items/{item_id}", response_model= Item, tags=["items"])
 def get_item(item_id: int):
     """find one report by the ID and return HTTP 404 if not exist"""
     # it was in the version 2 
